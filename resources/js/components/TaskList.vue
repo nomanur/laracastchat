@@ -11,6 +11,9 @@
 
     <div class="col-lg-4">
       <h2>Active</h2>
+      <ul>
+        <li v-for="participant in participants" v-text="participant.name"></li>
+      </ul>
     </div>
 	</div>
 </template>
@@ -25,11 +28,27 @@ export default {
     	project: this.dataproject,
     	newTask:'',
       activePeer:false,
-      typingTimer:false
+      typingTimer:false,
+      participants:[]
     };
   },
+  computed:{
+    channel(){
+      //return Echo.private('tasks.'+this.project.id)
+      return Echo.join('tasks.'+this.project.id)
+    }
+  },
   created(){
-    Echo.private('tasks.'+this.project.id)
+    this.channel
+      .here(users=>{
+        this.participants= users
+      })
+      .joining(user=>{
+        this.participants.push(user)
+      })
+      .leaving(user=>{
+        this.participants.splice(this.participants.indexOf(user), 1)
+      })
     .listen('TaskCreated', (e) => {
         //console.log(e);
         this.addTask(e.task)
@@ -47,7 +66,7 @@ export default {
   },
   methods:{
     tapParticipants(){
-       Echo.private('tasks.'+this.project.id)
+       this.channel
         .whisper('typing',{
           name: window.App.user.name
         })

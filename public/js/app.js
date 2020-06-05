@@ -1925,6 +1925,9 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'TaskList',
   props: {
@@ -1938,13 +1941,26 @@ __webpack_require__.r(__webpack_exports__);
       project: this.dataproject,
       newTask: '',
       activePeer: false,
-      typingTimer: false
+      typingTimer: false,
+      participants: []
     };
+  },
+  computed: {
+    channel: function channel() {
+      //return Echo.private('tasks.'+this.project.id)
+      return Echo.join('tasks.' + this.project.id);
+    }
   },
   created: function created() {
     var _this = this;
 
-    Echo["private"]('tasks.' + this.project.id).listen('TaskCreated', function (e) {
+    this.channel.here(function (users) {
+      _this.participants = users;
+    }).joining(function (user) {
+      _this.participants.push(user);
+    }).leaving(function (user) {
+      _this.participants.splice(_this.participants.indexOf(user), 1);
+    }).listen('TaskCreated', function (e) {
       //console.log(e);
       _this.addTask(e.task);
     }).listenForWhisper("typing", function (e) {
@@ -1958,7 +1974,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     tapParticipants: function tapParticipants() {
-      Echo["private"]('tasks.' + this.project.id).whisper('typing', {
+      this.channel.whisper('typing', {
         name: window.App.user.name
       });
     },
@@ -43596,19 +43612,22 @@ var render = function() {
         : _vm._e()
     ]),
     _vm._v(" "),
-    _vm._m(0)
+    _c("div", { staticClass: "col-lg-4" }, [
+      _c("h2", [_vm._v("Active")]),
+      _vm._v(" "),
+      _c(
+        "ul",
+        _vm._l(_vm.participants, function(participant) {
+          return _c("li", {
+            domProps: { textContent: _vm._s(participant.name) }
+          })
+        }),
+        0
+      )
+    ])
   ])
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "col-lg-4" }, [
-      _c("h2", [_vm._v("Active")])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 

@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('tasks.{projectId}', function ($user, \App\Project $projectId) {
 
-	return $projectId->participants->contains($user);
+	//return $projectId->participants->contains($user); //for private channel it will work
+
+	if($projectId->participants->contains($user)){
+		return ['name'=> $user->name];
+	}
+
     //return (int) $user->id === (int) $id;
 
     // $canAccess=[];
