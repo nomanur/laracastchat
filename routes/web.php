@@ -40,4 +40,9 @@ Route::post('/api/projects/{project}/tasks', function(Project $project){
 
 Auth::routes();
 
+
+Route::get('logout', function(){
+	auth()->logout();
+});
+
 Route::get('/home', 'HomeController@index')->name('home');

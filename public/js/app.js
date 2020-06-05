@@ -1919,6 +1919,12 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'TaskList',
   props: {
@@ -1930,18 +1936,32 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       project: this.dataproject,
-      newTask: ''
+      newTask: '',
+      activePeer: false,
+      typingTimer: false
     };
   },
   created: function created() {
     var _this = this;
 
-    Echo.channel('tasks.' + this.project.id).listen('TaskCreated', function (e) {
+    Echo["private"]('tasks.' + this.project.id).listen('TaskCreated', function (e) {
       //console.log(e);
       _this.addTask(e.task);
+    }).listenForWhisper("typing", function (e) {
+      _this.activePeer = e;
+      if (_this.typingTimer) clearTimeout(_this.typingTimer);
+      _this.typingTimer = setTimeout(function () {
+        _this.activePeer = false;
+        console.log('ok');
+      }, 3000);
     });
   },
   methods: {
+    tapParticipants: function tapParticipants() {
+      Echo["private"]('tasks.' + this.project.id).whisper('typing', {
+        name: window.App.user.name
+      });
+    },
     save: function save() {
       axios.post("/api/projects/".concat(this.project.id, "/tasks"), {
         body: this.newTask
@@ -1950,6 +1970,7 @@ __webpack_require__.r(__webpack_exports__);
       }).then(this.addTask);
     },
     addTask: function addTask(task) {
+      this.activePeer = false;
       this.project.tasks.push(task);
       this.newTask = '';
     }
@@ -43525,47 +43546,69 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", [
-    _c(
-      "ul",
-      _vm._l(_vm.project.tasks, function(tasks) {
-        return _c("li", { domProps: { textContent: _vm._s(tasks.body) } })
+  return _c("div", { staticClass: "row" }, [
+    _c("div", { staticClass: "col-lg-8" }, [
+      _c(
+        "ul",
+        _vm._l(_vm.project.tasks, function(tasks) {
+          return _c("li", { domProps: { textContent: _vm._s(tasks.body) } })
+        }),
+        0
+      ),
+      _vm._v(" "),
+      _c("input", {
+        directives: [
+          {
+            name: "model",
+            rawName: "v-model",
+            value: _vm.newTask,
+            expression: "newTask"
+          }
+        ],
+        attrs: { type: "text" },
+        domProps: { value: _vm.newTask },
+        on: {
+          keypress: function($event) {
+            if (
+              !$event.type.indexOf("key") &&
+              _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
+            ) {
+              return null
+            }
+            return _vm.save()
+          },
+          keydown: _vm.tapParticipants,
+          input: function($event) {
+            if ($event.target.composing) {
+              return
+            }
+            _vm.newTask = $event.target.value
+          }
+        }
       }),
-      0
-    ),
+      _vm._v(" "),
+      _vm.activePeer
+        ? _c("span", {
+            domProps: {
+              textContent: _vm._s(_vm.activePeer.name + " is typing....")
+            }
+          })
+        : _vm._e()
+    ]),
     _vm._v(" "),
-    _c("input", {
-      directives: [
-        {
-          name: "model",
-          rawName: "v-model",
-          value: _vm.newTask,
-          expression: "newTask"
-        }
-      ],
-      attrs: { type: "text" },
-      domProps: { value: _vm.newTask },
-      on: {
-        keypress: function($event) {
-          if (
-            !$event.type.indexOf("key") &&
-            _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")
-          ) {
-            return null
-          }
-          return _vm.save()
-        },
-        input: function($event) {
-          if ($event.target.composing) {
-            return
-          }
-          _vm.newTask = $event.target.value
-        }
-      }
-    })
+    _vm._m(0)
   ])
 }
-var staticRenderFns = []
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "col-lg-4" }, [
+      _c("h2", [_vm._v("Active")])
+    ])
+  }
+]
 render._withStripped = true
 
 

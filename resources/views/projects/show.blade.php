@@ -8,6 +8,10 @@
 
      <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+
+    	<script type="text/javascript">
+    		window.App = <?php echo json_encode(['user'=> auth()->user() ]); ?>
+    	</script>
 </head>
 <body>
 

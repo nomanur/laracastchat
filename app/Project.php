@@ -14,4 +14,9 @@ class Project extends Model
     {
     	return $this->hasMany('App\Task');
     }
+
+    public function participants()
+    {
+    	return $this->belongsToMany('App\User', 'project_participants');
+    }
 }
